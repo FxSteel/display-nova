@@ -1,0 +1,20 @@
+{
+  "appId": "com.fxsteel.nova-display",
+  "productName": "NOVA Display Player",
+  "files": [
+    "dist/**/*",
+    "package.json"
+  ],
+  "directories": {
+    "buildResources": "build"
+  },
+  "mac": {
+    "target": "dmg",
+    "category": "public.app-category.productivity",
+    "artifactName": "${productName}-${version}-mac.${ext}"
+  },
+  "win": {
+    "target": "nsis",
+    "artifactName": "${productName}-${version}-win.${ext}"
+  }
+}

@@ -1,0 +1,129 @@
+:root {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  color: #f6f6f6;
+  background-color: #050505;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #050505;
+}
+
+main.setup-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.setup-card {
+  width: min(960px, 100%);
+  background: #121212;
+  border: 1px solid #1e1e1e;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.setup-card h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
+}
+
+.display-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.display-list li {
+  border: 1px solid #292929;
+  border-radius: 16px;
+  padding: 1rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.display-list li.active {
+  border-color: #0cb2ff;
+  transform: translateY(-2px);
+}
+
+.display-list label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.display-list input[type="radio"] {
+  accent-color: #0cb2ff;
+  width: 20px;
+  height: 20px;
+}
+
+.display-list strong {
+  display: block;
+  font-size: 1.125rem;
+}
+
+.display-list p {
+  margin: 0.25rem 0;
+  color: #d1d1d1;
+  font-size: 0.95rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+button.primary {
+  background: linear-gradient(135deg, #0cb2ff, #3b82f6);
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  padding: 0.85rem 1.4rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(12, 178, 255, 0.4);
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  margin: 0;
+  color: #a9a9a9;
+  font-size: 0.9rem;
+}
+
+.output-screen {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.output-message {
+  text-align: center;
+}
+
+.output-message p {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.2rem;
+}
