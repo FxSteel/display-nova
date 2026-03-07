@@ -10,10 +10,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "types": ["node", "electron"],
     "paths": {
       "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/main/**/*", "src/preload/**/*", "src/shared/**/*"]
+  "include": ["src/main.ts", "src/main/**/*", "src/preload/**/*", "src/shared/**/*"]
 }

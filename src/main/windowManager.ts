@@ -2,7 +2,16 @@ import { BrowserWindow } from "electron";
 import type { DisplayInfo } from "../shared/display";
 
 let setupWindow: BrowserWindow | null = null;
-let outputWindow: BrowserWindow | null = null;
+// Map de role -> BrowserWindow (soporta "main" y "stage")
+const outputWindows = new Map<string, BrowserWindow>();
+
+let _outputUrl = "";
+let _preloadPath = "";
+
+export function initWindowManager(outputUrl: string, preloadPath: string) {
+  _outputUrl = outputUrl;
+  _preloadPath = preloadPath;
+}
 
 export function createSetupWindow(loadUrl: string, preloadPath: string): BrowserWindow {
   if (setupWindow) {
@@ -15,6 +24,7 @@ export function createSetupWindow(loadUrl: string, preloadPath: string): Browser
     height: 720,
     resizable: true,
     backgroundColor: "#101010",
+    show: false,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -24,20 +34,22 @@ export function createSetupWindow(loadUrl: string, preloadPath: string): Browser
   });
 
   setupWindow.loadURL(loadUrl);
-
-  setupWindow.on("closed", () => {
-    setupWindow = null;
-  });
+  setupWindow.once("ready-to-show", () => setupWindow?.show());
+  setupWindow.on("closed", () => { setupWindow = null; });
 
   return setupWindow;
 }
 
-export function createOutputWindow(loadUrl: string, preloadPath: string, display: DisplayInfo): BrowserWindow {
-  closeOutputWindow();
+export function openOutputWindowForRole(display: DisplayInfo, role: string): BrowserWindow {
+  // Cerrar ventana previa del mismo role si existe
+  const existing = outputWindows.get(role);
+  if (existing && !existing.isDestroyed()) {
+    existing.close();
+  }
 
   const { bounds } = display;
 
-  outputWindow = new BrowserWindow({
+  const win = new BrowserWindow({
     x: bounds.x,
     y: bounds.y,
     width: bounds.width,
@@ -49,29 +61,38 @@ export function createOutputWindow(loadUrl: string, preloadPath: string, display
     backgroundColor: "#000000",
     show: false,
     webPreferences: {
-      preload: preloadPath,
+      preload: _preloadPath,
       contextIsolation: true,
       nodeIntegration: false
     }
   });
 
-  outputWindow.loadURL(loadUrl);
+  win.loadURL(_outputUrl);
+  win.once("ready-to-show", () => win.show());
+  win.on("closed", () => { outputWindows.delete(role); });
 
-  outputWindow.once("ready-to-show", () => {
-    if (outputWindow) {
-      outputWindow.show();
-    }
-  });
+  outputWindows.set(role, win);
+  console.log(`[WM] Opened kiosk window for role "${role}" on display ${display.id}`);
+  return win;
+}
 
-  outputWindow.on("closed", () => {
-    outputWindow = null;
-  });
-
-  return outputWindow;
+// Mantener compatibilidad con ipc.ts existente
+export function createOutputWindow(loadUrl: string, preloadPath: string, display: DisplayInfo): BrowserWindow {
+  _outputUrl = loadUrl;
+  _preloadPath = preloadPath;
+  return openOutputWindowForRole(display, "main");
 }
 
 export function closeOutputWindow() {
-  if (outputWindow && !outputWindow.isDestroyed()) {
-    outputWindow.close();
+  outputWindows.forEach((win) => { if (!win.isDestroyed()) win.close(); });
+  outputWindows.clear();
+}
+
+export function sendToOutputWindow(role: string, channel: string, ...args: unknown[]) {
+  const win = outputWindows.get(role);
+  if (win && !win.isDestroyed()) {
+    win.webContents.send(channel, ...args);
+  } else {
+    console.warn(`[WM] No window for role "${role}" — slide not delivered`);
   }
 }

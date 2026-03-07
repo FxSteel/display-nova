@@ -116,14 +116,38 @@ button.primary:disabled {
   align-items: center;
   justify-content: center;
   background: #000;
+  overflow: hidden;
 }
 
-.output-message {
+.output-media {
+  padding: 0;
+}
+
+.output-media img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  display: block;
+}
+
+.output-slide {
+  flex-direction: column;
+  gap: 1rem;
+  padding: 4vw;
   text-align: center;
 }
 
-.output-message p {
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 0.2rem;
+.slide-reference {
+  margin: 0;
+  font-size: 1.8vw;
+  color: #6ab0ff;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.slide-text {
+  margin: 0;
+  color: #ffffff;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
