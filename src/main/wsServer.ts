@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { screen as electronScreen } from "electron";
-import type { SlideData, DisplayMode } from "../shared/display";
+import type { SlideData, DisplayMode, SongBackground } from "../shared/display";
 
 export interface ScreenAssignment {
   screenId: string;
@@ -11,6 +11,7 @@ let wss: WebSocketServer | null = null;
 let onSlideCallback: ((slide: SlideData, role: string) => void) | null = null;
 let onAssignScreenCallback: ((assignment: ScreenAssignment, respond: () => void) => void) | null = null;
 let onDisplayModeCallback: ((mode: DisplayMode) => void) | null = null;
+let onSongBackgroundCallback: ((bg: SongBackground) => void) | null = null;
 
 function buildScreensMessage() {
   const primaryId = electronScreen.getPrimaryDisplay().id;
@@ -34,11 +35,13 @@ function broadcast(msg: string) {
 export function startWsServer(
   onSlide: (slide: SlideData, role: string) => void,
   onAssignScreen: (assignment: ScreenAssignment, respond: () => void) => void,
-  onDisplayMode: (mode: DisplayMode) => void
+  onDisplayMode: (mode: DisplayMode) => void,
+  onSongBackground: (bg: SongBackground) => void
 ) {
   onSlideCallback = onSlide;
   onAssignScreenCallback = onAssignScreen;
   onDisplayModeCallback = onDisplayMode;
+  onSongBackgroundCallback = onSongBackground;
 
   wss = new WebSocketServer({ host: "127.0.0.1", port: 9877 });
 
@@ -63,6 +66,10 @@ export function startWsServer(
         } else if (msg.type === "display-mode") {
           console.log(`[WS] display-mode → mode="${msg.mode as string}"`);
           onDisplayModeCallback?.(msg as unknown as DisplayMode);
+
+        } else if (msg.type === "song-background") {
+          console.log(`[WS] song-background → type="${msg.backgroundType as string}"`);
+          onSongBackgroundCallback?.(msg as unknown as SongBackground);
 
         } else if (msg.type === "assign-screen") {
           const screenId = msg.screenId as string;

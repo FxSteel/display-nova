@@ -1,4 +1,4 @@
-import type { DisplayInfo, SlideData, DisplayMode } from "@shared/display";
+import type { DisplayInfo, SlideData, DisplayMode, SongBackground } from "@shared/display";
 
 declare global {
   interface Window {
@@ -7,6 +7,7 @@ declare global {
       openOutput: (displayId: number) => Promise<boolean>;
       onSlide: (callback: (slide: SlideData) => void) => void;
       onDisplayMode: (callback: (mode: DisplayMode) => void) => void;
+      onSongBackground: (callback: (bg: SongBackground) => void) => void;
     };
   }
 }

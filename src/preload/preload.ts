@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { DisplayInfo, SlideData, DisplayMode } from "../shared/display";
+import type { DisplayInfo, SlideData, DisplayMode, SongBackground } from "../shared/display";
 
 contextBridge.exposeInMainWorld("nova", {
   getDisplays: async (): Promise<DisplayInfo[]> => {
@@ -13,5 +13,8 @@ contextBridge.exposeInMainWorld("nova", {
   },
   onDisplayMode: (callback: (mode: DisplayMode) => void) => {
     ipcRenderer.on("nova:displayMode", (_event, mode: DisplayMode) => callback(mode));
+  },
+  onSongBackground: (callback: (bg: SongBackground) => void) => {
+    ipcRenderer.on("nova:songBackground", (_event, bg: SongBackground) => callback(bg));
   }
 });

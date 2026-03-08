@@ -13,7 +13,13 @@ export interface SlideData {
   lineHeight?: number;
   letterSpacing?: number;
   fontWeight?: number;
+  textAlign?: "left" | "center" | "right";
   songTypography?: Partial<SlideTypography> | null;
+}
+
+export interface SongBackground {
+  backgroundType: "image" | "video" | "none";
+  backgroundUrl: string | null;
 }
 
 export type DisplayMode =

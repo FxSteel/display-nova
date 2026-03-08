@@ -3,7 +3,7 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, screen as electronScreen }
 import { createSetupWindow, initWindowManager, openOutputWindowForRole, sendToOutputWindow } from "./main/windowManager";
 import { registerIpcHandlers } from "./main/ipc";
 import { startWsServer } from "./main/wsServer";
-import type { SlideData, DisplayMode } from "./shared/display";
+import type { SlideData, DisplayMode, SongBackground } from "./shared/display";
 import type { ScreenAssignment } from "./main/wsServer";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -63,6 +63,12 @@ function onAssignScreen(assignment: ScreenAssignment, respond: () => void) {
   respond();
 }
 
+function onSongBackground(bg: SongBackground) {
+  console.log(`[Main] song-background → ${bg.backgroundType}`);
+  sendToOutputWindow("main", "nova:songBackground", bg);
+  sendToOutputWindow("stage", "nova:songBackground", bg);
+}
+
 function onDisplayMode(displayMode: DisplayMode) {
   console.log(`[Main] display-mode → ${displayMode.mode}`);
   // Broadcast a todas las ventanas de output
@@ -77,7 +83,7 @@ async function bootstrap() {
   initWindowManager(rendererUrl("output"), preloadPath);
   createSetupWindow(rendererUrl("setup"), preloadPath);
   registerIpcHandlers(rendererUrl("output"), preloadPath);
-  startWsServer(onSlide, onAssignScreen, onDisplayMode);
+  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground);
   createTray(preloadPath);
 }
 
