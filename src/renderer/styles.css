@@ -180,3 +180,13 @@ button.primary:disabled {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.bible-reference {
+  margin: 0.8em 0 0;
+  color: #c0c0c0;
+  font-weight: 400;
+}
+
+.bible-version {
+  opacity: 0.75;
+}

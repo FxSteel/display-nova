@@ -15,6 +15,10 @@ export interface SlideData {
   fontWeight?: number;
   textAlign?: "left" | "center" | "right";
   songTypography?: Partial<SlideTypography> | null;
+  // bible_verse fields
+  verseText?: string;
+  displayReference?: string;
+  bibleVersionName?: string;
 }
 
 export interface SongBackground {
