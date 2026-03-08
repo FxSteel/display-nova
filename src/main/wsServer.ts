@@ -84,7 +84,19 @@ export function startWsServer(
       }
     });
 
-    ws.on("close", () => console.log("[WS] Client disconnected"));
+    ws.on("close", () => {
+      console.log("[WS] Client disconnected — kiosk state preserved");
+      // No resetear estado: el renderer mantiene el último slide visible
+    });
+
+    ws.on("error", (err) => {
+      console.error("[WS] Client error:", err.message);
+      // No crashear — la conexión se cerrará sola
+    });
+  });
+
+  wss.on("error", (err) => {
+    console.error("[WS] Server error:", err.message);
   });
 
   electronScreen.on("display-added", () => broadcast(buildScreensMessage()));
