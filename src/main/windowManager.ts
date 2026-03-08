@@ -88,6 +88,13 @@ export function closeOutputWindow() {
   outputWindows.clear();
 }
 
+export function getRoleForWebContents(webContentsId: number): string | null {
+  for (const [role, win] of outputWindows) {
+    if (!win.isDestroyed() && win.webContents.id === webContentsId) return role;
+  }
+  return null;
+}
+
 export function sendToOutputWindow(role: string, channel: string, ...args: unknown[]) {
   const win = outputWindows.get(role);
   if (win && !win.isDestroyed()) {

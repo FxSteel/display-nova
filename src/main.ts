@@ -1,6 +1,6 @@
 import path from "path";
-import { app, BrowserWindow, Tray, Menu, nativeImage, screen as electronScreen } from "electron";
-import { createSetupWindow, initWindowManager, openOutputWindowForRole, sendToOutputWindow } from "./main/windowManager";
+import { app, BrowserWindow, Tray, Menu, nativeImage, screen as electronScreen, ipcMain } from "electron";
+import { createSetupWindow, initWindowManager, openOutputWindowForRole, sendToOutputWindow, getRoleForWebContents } from "./main/windowManager";
 import { registerIpcHandlers } from "./main/ipc";
 import { startWsServer } from "./main/wsServer";
 import type { SlideData, DisplayMode, SongBackground } from "./shared/display";
@@ -10,6 +10,11 @@ const isDev = process.env.NODE_ENV !== "production";
 const rendererDevServer = "http://localhost:5173";
 
 let tray: Tray | null = null;
+
+// Cache del último estado por rol
+const lastSlide = new Map<string, SlideData>();
+let lastBackground: SongBackground | null = null;
+let lastMode: DisplayMode = { mode: "slide" };
 
 function rendererUrl(screen?: "setup" | "output") {
   const base = isDev ? rendererDevServer : `file://${path.join(__dirname, "../renderer/index.html")}`;
@@ -39,6 +44,7 @@ function createTray(preloadPath: string) {
 
 function onSlide(slide: SlideData, role: string) {
   console.log(`[Main] Forwarding slide to role="${role}"`);
+  lastSlide.set(role, slide);
   sendToOutputWindow(role, "nova:slide", slide);
 }
 
@@ -65,16 +71,29 @@ function onAssignScreen(assignment: ScreenAssignment, respond: () => void) {
 
 function onSongBackground(bg: SongBackground) {
   console.log(`[Main] song-background → ${bg.backgroundType}`);
+  lastBackground = bg;
   sendToOutputWindow("main", "nova:songBackground", bg);
   sendToOutputWindow("stage", "nova:songBackground", bg);
 }
 
 function onDisplayMode(displayMode: DisplayMode) {
   console.log(`[Main] display-mode → ${displayMode.mode}`);
-  // Broadcast a todas las ventanas de output
+  lastMode = displayMode;
   sendToOutputWindow("main", "nova:displayMode", displayMode);
   sendToOutputWindow("stage", "nova:displayMode", displayMode);
 }
+
+// El renderer avisa cuando ya registró sus listeners — reenviar el último estado
+ipcMain.on("nova:outputReady", (event) => {
+  const role = getRoleForWebContents(event.sender.id);
+  if (!role) return;
+  console.log(`[Main] Output window ready for role="${role}" — replaying cached state`);
+
+  if (lastBackground) event.sender.send("nova:songBackground", lastBackground);
+  event.sender.send("nova:displayMode", lastMode);
+  const slide = lastSlide.get(role);
+  if (slide) event.sender.send("nova:slide", slide);
+});
 
 async function bootstrap() {
   app.setActivationPolicy("accessory");

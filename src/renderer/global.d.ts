@@ -8,6 +8,7 @@ declare global {
       onSlide: (callback: (slide: SlideData) => void) => void;
       onDisplayMode: (callback: (mode: DisplayMode) => void) => void;
       onSongBackground: (callback: (bg: SongBackground) => void) => void;
+      signalReady: () => void;
     };
   }
 }

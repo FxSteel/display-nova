@@ -81,6 +81,8 @@ export default function OutputScreen() {
     });
     window.nova.onDisplayMode((m) => setMode(m));
     window.nova.onSongBackground((bg) => setBackground(bg));
+    // Avisar al main process que los listeners están listos → recibir estado cacheado
+    window.nova.signalReady();
   }, []);
 
   const hasBg = background && background.backgroundType !== "none" && background.backgroundUrl;

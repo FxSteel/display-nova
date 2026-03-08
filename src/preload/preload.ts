@@ -16,5 +16,8 @@ contextBridge.exposeInMainWorld("nova", {
   },
   onSongBackground: (callback: (bg: SongBackground) => void) => {
     ipcRenderer.on("nova:songBackground", (_event, bg: SongBackground) => callback(bg));
+  },
+  signalReady: () => {
+    ipcRenderer.send("nova:outputReady");
   }
 });
