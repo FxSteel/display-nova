@@ -6,7 +6,7 @@ import { startWsServer } from "./main/wsServer";
 import type { SlideData, DisplayMode, SongBackground } from "./shared/display";
 import type { ScreenAssignment } from "./main/wsServer";
 
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = !app.isPackaged;
 const rendererDevServer = "http://localhost:5173";
 
 let tray: Tray | null = null;
