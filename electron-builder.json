@@ -3,15 +3,20 @@
   "productName": "NOVA Display Player",
   "files": [
     "dist/**/*",
+    "!dist/mac*",
+    "!dist/win*",
+    "!dist/linux*",
     "package.json"
   ],
   "directories": {
     "buildResources": "build"
   },
   "mac": {
-    "target": "dmg",
+    "target": [
+      { "target": "dmg", "arch": ["universal"] }
+    ],
     "category": "public.app-category.productivity",
-    "artifactName": "${productName}-${version}-mac.${ext}"
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "win": {
     "target": "nsis",
