@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { screen as electronScreen } from "electron";
-import type { SlideData, DisplayMode, SongBackground } from "../shared/display";
+import type { SlideData, DisplayMode, SongBackground, StageTime, StageMessage, StageConfig } from "../shared/display";
 
 export interface ScreenAssignment {
   screenId: string;
@@ -13,6 +13,9 @@ let onAssignScreenCallback: ((assignment: ScreenAssignment, respond: () => void)
 let onDisplayModeCallback: ((mode: DisplayMode) => void) | null = null;
 let onSongBackgroundCallback: ((bg: SongBackground) => void) | null = null;
 let onNdiConfigCallback: ((outputs: unknown[]) => void) | null = null;
+let onStageTimeCallback: ((data: StageTime) => void) | null = null;
+let onStageMessageCallback: ((data: StageMessage) => void) | null = null;
+let onStageConfigCallback: ((data: StageConfig) => void) | null = null;
 
 function buildScreensMessage() {
   const primaryId = electronScreen.getPrimaryDisplay().id;
@@ -38,13 +41,19 @@ export function startWsServer(
   onAssignScreen: (assignment: ScreenAssignment, respond: () => void) => void,
   onDisplayMode: (mode: DisplayMode) => void,
   onSongBackground: (bg: SongBackground) => void,
-  onNdiConfig: (outputs: unknown[]) => void
+  onNdiConfig: (outputs: unknown[]) => void,
+  onStageTime: (data: StageTime) => void,
+  onStageMessage: (data: StageMessage) => void,
+  onStageConfig: (data: StageConfig) => void
 ) {
   onSlideCallback = onSlide;
   onAssignScreenCallback = onAssignScreen;
   onDisplayModeCallback = onDisplayMode;
   onSongBackgroundCallback = onSongBackground;
   onNdiConfigCallback = onNdiConfig;
+  onStageTimeCallback = onStageTime;
+  onStageMessageCallback = onStageMessage;
+  onStageConfigCallback = onStageConfig;
 
   wss = new WebSocketServer({ host: "127.0.0.1", port: 9877 });
 
@@ -78,6 +87,18 @@ export function startWsServer(
           const outputs = (msg.outputs as unknown[]) ?? [];
           console.log(`[WS] ndi-config → ${outputs.length} output(s)`);
           onNdiConfigCallback?.(outputs);
+
+        } else if (msg.type === "stage-time") {
+          onStageTimeCallback?.({ time: msg.time as string });
+
+        } else if (msg.type === "stage-message") {
+          onStageMessageCallback?.({ message: msg.message as string });
+
+        } else if (msg.type === "stage-config") {
+          onStageConfigCallback?.({
+            showTime:    msg.showTime    as boolean,
+            showMessage: msg.showMessage as boolean,
+          });
 
         } else if (msg.type === "assign-screen") {
           const screenId = msg.screenId as string;

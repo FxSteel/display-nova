@@ -6,7 +6,11 @@
     "!dist/mac*",
     "!dist/win*",
     "!dist/linux*",
+    "!dist/.icon*",
     "package.json"
+  ],
+  "extraResources": [
+    { "from": "assets/nova.png", "to": "assets/nova.png" }
   ],
   "directories": {
     "buildResources": "build"
@@ -15,6 +19,7 @@
     "target": [
       { "target": "dmg", "arch": ["universal"] }
     ],
+    "icon": "assets/nova.png",
     "category": "public.app-category.productivity",
     "artifactName": "${productName}-${version}-${arch}.${ext}"
   },

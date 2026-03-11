@@ -3,7 +3,7 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, screen as electronScreen, 
 import { createSetupWindow, initWindowManager, openOutputWindowForRole, sendToOutputWindow, getRoleForWebContents } from "./main/windowManager";
 import { registerIpcHandlers } from "./main/ipc";
 import { startWsServer } from "./main/wsServer";
-import type { SlideData, DisplayMode, SongBackground } from "./shared/display";
+import type { SlideData, DisplayMode, SongBackground, StageTime, StageMessage, StageConfig } from "./shared/display";
 import type { ScreenAssignment } from "./main/wsServer";
 import {
   handleNdiConfig,
@@ -33,9 +33,20 @@ function preloadUrl() {
   return path.join(__dirname, "./preload/preload.js");
 }
 
+function trayIconPath() {
+  return isDev
+    ? path.join(__dirname, "../../assets/nova.png")
+    : path.join(process.resourcesPath, "assets/nova.png");
+}
+
 function createTray(preloadPath: string) {
-  const icon = nativeImage.createFromNamedImage("NSImageNameComputer", [16, 16]);
-  tray = new Tray(icon.resize({ width: 16, height: 16 }));
+  let icon: ReturnType<typeof nativeImage.createFromPath>;
+  try {
+    icon = nativeImage.createFromPath(trayIconPath()).resize({ width: 16, height: 16 });
+  } catch {
+    icon = nativeImage.createFromNamedImage("NSImageNameComputer", [16, 16]).resize({ width: 16, height: 16 });
+  }
+  tray = new Tray(icon);
   tray.setToolTip("NOVA Display");
 
   const menu = Menu.buildFromTemplate([
@@ -98,6 +109,18 @@ function onNdiConfig(outputs: unknown[]) {
   handleNdiConfig(outputs as NdiOutput[]);
 }
 
+function onStageTime(data: StageTime) {
+  sendToOutputWindow("stage", "nova:stageTime", data);
+}
+
+function onStageMessage(data: StageMessage) {
+  sendToOutputWindow("stage", "nova:stageMessage", data);
+}
+
+function onStageConfig(data: StageConfig) {
+  sendToOutputWindow("stage", "nova:stageConfig", data);
+}
+
 // El renderer avisa cuando ya registró sus listeners — reenviar el último estado
 ipcMain.on("nova:outputReady", (event) => {
   const role = getRoleForWebContents(event.sender.id);
@@ -117,7 +140,7 @@ async function bootstrap() {
   initWindowManager(rendererUrl("output"), preloadPath);
   createSetupWindow(rendererUrl("setup"), preloadPath);
   registerIpcHandlers(rendererUrl("output"), preloadPath);
-  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig);
+  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig, onStageTime, onStageMessage, onStageConfig);
   createTray(preloadPath);
 }
 

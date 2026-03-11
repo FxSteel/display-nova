@@ -27,7 +27,6 @@
   "license": "MIT",
   "dependencies": {
     "canvas": "^3.2.1",
-    "grandiose": "^0.0.4",
     "koffi": "^2.15.2",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

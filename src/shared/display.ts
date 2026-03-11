@@ -14,11 +14,25 @@ export interface SlideData {
   letterSpacing?: number;
   fontWeight?: number;
   textAlign?: "left" | "center" | "right";
+  contentPadding?: number;
   songTypography?: Partial<SlideTypography> | null;
   // bible_verse fields
   verseText?: string;
   displayReference?: string;
   bibleVersionName?: string;
+}
+
+export interface StageTime {
+  time: string;
+}
+
+export interface StageMessage {
+  message: string;
+}
+
+export interface StageConfig {
+  showTime: boolean;
+  showMessage: boolean;
 }
 
 export interface SongBackground {

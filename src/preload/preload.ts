@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { DisplayInfo, SlideData, DisplayMode, SongBackground } from "../shared/display";
+import type { DisplayInfo, SlideData, DisplayMode, SongBackground, StageTime, StageMessage, StageConfig } from "../shared/display";
 
 contextBridge.exposeInMainWorld("nova", {
   getDisplays: async (): Promise<DisplayInfo[]> => {
@@ -19,5 +19,14 @@ contextBridge.exposeInMainWorld("nova", {
   },
   signalReady: () => {
     ipcRenderer.send("nova:outputReady");
-  }
+  },
+  onStageTime: (callback: (data: StageTime) => void) => {
+    ipcRenderer.on("nova:stageTime", (_event, data: StageTime) => callback(data));
+  },
+  onStageMessage: (callback: (data: StageMessage) => void) => {
+    ipcRenderer.on("nova:stageMessage", (_event, data: StageMessage) => callback(data));
+  },
+  onStageConfig: (callback: (data: StageConfig) => void) => {
+    ipcRenderer.on("nova:stageConfig", (_event, data: StageConfig) => callback(data));
+  },
 });
