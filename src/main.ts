@@ -5,6 +5,14 @@ import { registerIpcHandlers } from "./main/ipc";
 import { startWsServer } from "./main/wsServer";
 import type { SlideData, DisplayMode, SongBackground } from "./shared/display";
 import type { ScreenAssignment } from "./main/wsServer";
+import {
+  handleNdiConfig,
+  ndiHandleSlide,
+  ndiHandleDisplayMode,
+  ndiHandleBackground,
+  destroyAllNdiSenders,
+} from "./main/ndiManager";
+import type { NdiOutput } from "./main/ndiManager";
 
 const isDev = !app.isPackaged;
 const rendererDevServer = "http://localhost:5173";
@@ -46,6 +54,7 @@ function onSlide(slide: SlideData, role: string) {
   console.log(`[Main] Forwarding slide to role="${role}"`);
   lastSlide.set(role, slide);
   sendToOutputWindow(role, "nova:slide", slide);
+  ndiHandleSlide(slide);
 }
 
 function onAssignScreen(assignment: ScreenAssignment, respond: () => void) {
@@ -74,6 +83,7 @@ function onSongBackground(bg: SongBackground) {
   lastBackground = bg;
   sendToOutputWindow("main", "nova:songBackground", bg);
   sendToOutputWindow("stage", "nova:songBackground", bg);
+  ndiHandleBackground(bg);
 }
 
 function onDisplayMode(displayMode: DisplayMode) {
@@ -81,6 +91,11 @@ function onDisplayMode(displayMode: DisplayMode) {
   lastMode = displayMode;
   sendToOutputWindow("main", "nova:displayMode", displayMode);
   sendToOutputWindow("stage", "nova:displayMode", displayMode);
+  ndiHandleDisplayMode(displayMode);
+}
+
+function onNdiConfig(outputs: unknown[]) {
+  handleNdiConfig(outputs as NdiOutput[]);
 }
 
 // El renderer avisa cuando ya registró sus listeners — reenviar el último estado
@@ -102,7 +117,7 @@ async function bootstrap() {
   initWindowManager(rendererUrl("output"), preloadPath);
   createSetupWindow(rendererUrl("setup"), preloadPath);
   registerIpcHandlers(rendererUrl("output"), preloadPath);
-  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground);
+  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig);
   createTray(preloadPath);
 }
 
@@ -116,4 +131,8 @@ app.on("activate", () => {
 
 app.on("window-all-closed", () => {
   // no-op: el Tray mantiene la app viva
+});
+
+app.on("before-quit", () => {
+  destroyAllNdiSenders();
 });

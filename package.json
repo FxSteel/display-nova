@@ -26,17 +26,20 @@
   "author": "FxSteel",
   "license": "MIT",
   "dependencies": {
+    "canvas": "^3.2.1",
+    "grandiose": "^0.0.4",
+    "koffi": "^2.15.2",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "electron": "^40.7.0",
     "@types/node": "^20.5.0",
-    "@types/ws": "^8.5.10",
     "@types/react": "^18.2.34",
     "@types/react-dom": "^18.2.16",
+    "@types/ws": "^8.5.10",
     "@vitejs/plugin-react": "^4.0.0",
+    "electron": "^40.7.0",
     "electron-builder": "^26.8.1",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.4.0",

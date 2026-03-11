@@ -12,6 +12,7 @@ let onSlideCallback: ((slide: SlideData, role: string) => void) | null = null;
 let onAssignScreenCallback: ((assignment: ScreenAssignment, respond: () => void) => void) | null = null;
 let onDisplayModeCallback: ((mode: DisplayMode) => void) | null = null;
 let onSongBackgroundCallback: ((bg: SongBackground) => void) | null = null;
+let onNdiConfigCallback: ((outputs: unknown[]) => void) | null = null;
 
 function buildScreensMessage() {
   const primaryId = electronScreen.getPrimaryDisplay().id;
@@ -36,12 +37,14 @@ export function startWsServer(
   onSlide: (slide: SlideData, role: string) => void,
   onAssignScreen: (assignment: ScreenAssignment, respond: () => void) => void,
   onDisplayMode: (mode: DisplayMode) => void,
-  onSongBackground: (bg: SongBackground) => void
+  onSongBackground: (bg: SongBackground) => void,
+  onNdiConfig: (outputs: unknown[]) => void
 ) {
   onSlideCallback = onSlide;
   onAssignScreenCallback = onAssignScreen;
   onDisplayModeCallback = onDisplayMode;
   onSongBackgroundCallback = onSongBackground;
+  onNdiConfigCallback = onNdiConfig;
 
   wss = new WebSocketServer({ host: "127.0.0.1", port: 9877 });
 
@@ -70,6 +73,11 @@ export function startWsServer(
         } else if (msg.type === "song-background") {
           console.log(`[WS] song-background → type="${msg.backgroundType as string}"`);
           onSongBackgroundCallback?.(msg as unknown as SongBackground);
+
+        } else if (msg.type === "ndi-config") {
+          const outputs = (msg.outputs as unknown[]) ?? [];
+          console.log(`[WS] ndi-config → ${outputs.length} output(s)`);
+          onNdiConfigCallback?.(outputs);
 
         } else if (msg.type === "assign-screen") {
           const screenId = msg.screenId as string;
