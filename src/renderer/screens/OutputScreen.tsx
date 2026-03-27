@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { SlideData, DisplayMode, SongBackground } from "@shared/display";
 
 function resolveTypography(slide: SlideData) {
@@ -15,30 +15,57 @@ function resolveTypography(slide: SlideData) {
 function BibleVerseSlide({ slide }: { slide: SlideData }) {
   if (!slide.verseText) return null;
 
-  const fontSizeVw = ((slide.fontSize ?? 80) / 100) * 5;
-  const refSizeVw = fontSizeVw * 0.4;
+  const fontSize = slide.fontSize ?? 80;
+  const targetVw = (fontSize * 1.333) / 19.2;
   const align = (slide.textAlign ?? "center") as React.CSSProperties["textAlign"];
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  // Render at target size, then shrink via DOM if the full content block
+  // (verse + reference label) overflows 90% of viewport height.
+  // Measuring the container (not just the <p>) ensures the reference label
+  // is included in the overflow check. Runs before paint — no visible flash.
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    const container = containerRef.current;
+    if (!el || !container) return;
+    const maxH = window.innerHeight * 0.90;
+    el.style.fontSize = `${targetVw}vw`;
+    if (container.scrollHeight <= maxH) return;
+    let lo = 1, hi = targetVw;
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2;
+      el.style.fontSize = `${mid}vw`;
+      if (container.scrollHeight <= maxH) lo = mid;
+      else hi = mid;
+    }
+    el.style.fontSize = `${lo}vw`;
+  }, [slide.verseText, targetVw]);
+
+  const referenceLabel =
+    slide.projectedReferenceLabel ??
+    (slide.displayReference
+      ? `${slide.displayReference}${slide.bibleVersionAbbreviation ? ` - ${slide.bibleVersionAbbreviation}` : ""}`
+      : null);
 
   return (
-    <div className="slide-content" style={{ textAlign: align }}>
+    <div
+      ref={containerRef}
+      className="slide-content"
+      style={{ textAlign: align, paddingLeft: "8vw", paddingRight: "8vw" }}
+    >
       <p
+        ref={textRef}
         className="slide-text"
-        style={{
-          fontSize: `${fontSizeVw}vw`,
-          lineHeight: 1.4
-        }}
+        style={{ fontSize: `${targetVw}vw`, lineHeight: 1.4 }}
       >
         {slide.verseText}
       </p>
-      <p
-        className="bible-reference"
-        style={{ fontSize: `${refSizeVw}vw` }}
-      >
-        {slide.displayReference}
-        {slide.bibleVersionName && (
-          <span className="bible-version"> ({slide.bibleVersionName})</span>
-        )}
-      </p>
+      {referenceLabel && (
+        <p className="bible-reference" style={{ fontSize: `${targetVw * 0.4}vw` }}>
+          {referenceLabel}
+        </p>
+      )}
     </div>
   );
 }

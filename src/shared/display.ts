@@ -20,6 +20,8 @@ export interface SlideData {
   verseText?: string;
   displayReference?: string;
   bibleVersionName?: string;
+  bibleVersionAbbreviation?: string;
+  projectedReferenceLabel?: string;
 }
 
 export interface StageTime {
