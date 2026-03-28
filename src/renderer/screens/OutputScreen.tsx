@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { SlideData, DisplayMode, SongBackground } from "@shared/display";
+import type { SlideData, DisplayMode, SongBackground, DisplayMedia } from "@shared/display";
 
 function resolveTypography(slide: SlideData) {
   const t = slide.songTypography ?? {};
@@ -98,6 +98,7 @@ export default function OutputScreen() {
   const [slide, setSlide] = useState<SlideData | null>(null);
   const [mode, setMode] = useState<DisplayMode>({ mode: "slide" });
   const [background, setBackground] = useState<SongBackground | null>(null);
+  const [media, setMedia] = useState<DisplayMedia | null>(null);
 
   useEffect(() => {
     window.nova.onSlide((data) => {
@@ -106,8 +107,9 @@ export default function OutputScreen() {
       setSlide(data);
       setMode({ mode: "slide" });
     });
-    window.nova.onDisplayMode((m) => setMode(m));
+    window.nova.onDisplayMode((m) => { setMode(m); setMedia(null); });
     window.nova.onSongBackground((bg) => setBackground(bg));
+    window.nova.onDisplayMedia((m) => { setMedia(m); setSlide(null); });
     // Avisar al main process que los listeners están listos → recibir estado cacheado
     window.nova.signalReady();
   }, []);
@@ -146,6 +148,17 @@ export default function OutputScreen() {
     return (
       <main className="output-screen output-media">
         <img src={mode.announcementUrl} alt="" draggable={false} />
+      </main>
+    );
+  }
+
+  if (media) {
+    return (
+      <main className="output-screen output-media">
+        {media.mediaType === "video"
+          ? <video key={media.url} src={media.url} autoPlay loop muted playsInline />
+          : <img key={media.url} src={media.url} alt="" draggable={false} />
+        }
       </main>
     );
   }

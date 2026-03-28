@@ -3,7 +3,7 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, screen as electronScreen, 
 import { createSetupWindow, initWindowManager, openOutputWindowForRole, sendToOutputWindow, getRoleForWebContents } from "./main/windowManager";
 import { registerIpcHandlers } from "./main/ipc";
 import { startWsServer } from "./main/wsServer";
-import type { SlideData, DisplayMode, SongBackground, StageTime, StageMessage, StageConfig } from "./shared/display";
+import type { SlideData, DisplayMode, SongBackground, DisplayMedia, StageTime, StageMessage, StageConfig } from "./shared/display";
 import type { ScreenAssignment } from "./main/wsServer";
 import {
   handleNdiConfig,
@@ -23,6 +23,7 @@ let tray: Tray | null = null;
 const lastSlide = new Map<string, SlideData>();
 let lastBackground: SongBackground | null = null;
 let lastMode: DisplayMode = { mode: "slide" };
+let lastMedia: DisplayMedia | null = null;
 
 function rendererUrl(screen?: "setup" | "output") {
   const base = isDev ? rendererDevServer : `file://${path.join(__dirname, "../renderer/index.html")}`;
@@ -121,6 +122,12 @@ function onStageConfig(data: StageConfig) {
   sendToOutputWindow("stage", "nova:stageConfig", data);
 }
 
+function onDisplayMedia(media: DisplayMedia) {
+  console.log(`[Main] display-media → ${media.mediaType} ${media.url}`);
+  lastMedia = media;
+  sendToOutputWindow("main", "nova:displayMedia", media);
+}
+
 // El renderer avisa cuando ya registró sus listeners — reenviar el último estado
 ipcMain.on("nova:outputReady", (event) => {
   const role = getRoleForWebContents(event.sender.id);
@@ -128,6 +135,7 @@ ipcMain.on("nova:outputReady", (event) => {
   console.log(`[Main] Output window ready for role="${role}" — replaying cached state`);
 
   if (lastBackground) event.sender.send("nova:songBackground", lastBackground);
+  if (lastMedia) event.sender.send("nova:displayMedia", lastMedia);
   event.sender.send("nova:displayMode", lastMode);
   const slide = lastSlide.get(role);
   if (slide) event.sender.send("nova:slide", slide);
@@ -140,7 +148,7 @@ async function bootstrap() {
   initWindowManager(rendererUrl("output"), preloadPath);
   createSetupWindow(rendererUrl("setup"), preloadPath);
   registerIpcHandlers(rendererUrl("output"), preloadPath);
-  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig, onStageTime, onStageMessage, onStageConfig);
+  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig, onStageTime, onStageMessage, onStageConfig, onDisplayMedia);
   createTray(preloadPath);
 }
 

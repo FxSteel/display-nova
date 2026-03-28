@@ -24,6 +24,11 @@ export interface SlideData {
   projectedReferenceLabel?: string;
 }
 
+export interface DisplayMedia {
+  mediaType: "image" | "video";
+  url: string;
+}
+
 export interface StageTime {
   time: string;
 }

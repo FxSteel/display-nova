@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { screen as electronScreen } from "electron";
-import type { SlideData, DisplayMode, SongBackground, StageTime, StageMessage, StageConfig } from "../shared/display";
+import type { SlideData, DisplayMode, SongBackground, DisplayMedia, StageTime, StageMessage, StageConfig } from "../shared/display";
 
 export interface ScreenAssignment {
   screenId: string;
@@ -15,6 +15,7 @@ let onSongBackgroundCallback: ((bg: SongBackground) => void) | null = null;
 let onNdiConfigCallback: ((outputs: unknown[]) => void) | null = null;
 let onStageTimeCallback: ((data: StageTime) => void) | null = null;
 let onStageMessageCallback: ((data: StageMessage) => void) | null = null;
+let onDisplayMediaCallback: ((media: DisplayMedia) => void) | null = null;
 let onStageConfigCallback: ((data: StageConfig) => void) | null = null;
 
 function buildScreensMessage() {
@@ -44,7 +45,8 @@ export function startWsServer(
   onNdiConfig: (outputs: unknown[]) => void,
   onStageTime: (data: StageTime) => void,
   onStageMessage: (data: StageMessage) => void,
-  onStageConfig: (data: StageConfig) => void
+  onStageConfig: (data: StageConfig) => void,
+  onDisplayMedia: (media: DisplayMedia) => void
 ) {
   onSlideCallback = onSlide;
   onAssignScreenCallback = onAssignScreen;
@@ -54,6 +56,7 @@ export function startWsServer(
   onStageTimeCallback = onStageTime;
   onStageMessageCallback = onStageMessage;
   onStageConfigCallback = onStageConfig;
+  onDisplayMediaCallback = onDisplayMedia;
 
   wss = new WebSocketServer({ host: "127.0.0.1", port: 9877 });
 
@@ -99,6 +102,12 @@ export function startWsServer(
             showTime:    msg.showTime    as boolean,
             showMessage: msg.showMessage as boolean,
           });
+
+        } else if (msg.type === "display-media") {
+          const mediaType = msg.mediaType as "image" | "video";
+          const url = msg.url as string;
+          console.log(`[WS] display-media → mediaType="${mediaType}" url="${url}"`);
+          onDisplayMediaCallback?.({ mediaType, url });
 
         } else if (msg.type === "assign-screen") {
           const screenId = msg.screenId as string;
