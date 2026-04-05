@@ -1,6 +1,19 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { SlideData, DisplayMode, SongBackground, DisplayMedia } from "@shared/display";
 
+// Cache de media descargada: URL remota → blob URL local
+const mediaCache = new Map<string, string>();
+
+async function cacheMedia(url: string): Promise<string> {
+  const cached = mediaCache.get(url);
+  if (cached) return cached;
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  mediaCache.set(url, blobUrl);
+  return blobUrl;
+}
+
 function resolveTypography(slide: SlideData) {
   const t = slide.songTypography ?? {};
   return {
@@ -105,11 +118,20 @@ export default function OutputScreen() {
       // Ignorar bible_verse con verseText vacío (primera entrega)
       if (data.type === "bible_verse" && !data.verseText) return;
       setSlide(data);
+      setMedia(null);
       setMode({ mode: "slide" });
     });
     window.nova.onDisplayMode((m) => { setMode(m); setMedia(null); });
     window.nova.onSongBackground((bg) => setBackground(bg));
-    window.nova.onDisplayMedia((m) => { setMedia(m); setSlide(null); });
+    window.nova.onPreloadMedia(async (m) => {
+      try { await cacheMedia(m.url); } catch { /* no-op */ }
+    });
+    window.nova.onDisplayMedia((m) => {
+      setSlide(null);
+      setMode({ mode: "slide" });
+      const cached = mediaCache.get(m.url);
+      setMedia({ ...m, url: cached ?? m.url });
+    });
     // Avisar al main process que los listeners están listos → recibir estado cacheado
     window.nova.signalReady();
   }, []);
@@ -156,7 +178,7 @@ export default function OutputScreen() {
     return (
       <main className="output-screen output-media">
         {media.mediaType === "video"
-          ? <video key={media.url} src={media.url} autoPlay loop muted playsInline />
+          ? <video key={media.url} src={media.url} autoPlay loop playsInline />
           : <img key={media.url} src={media.url} alt="" draggable={false} />
         }
       </main>

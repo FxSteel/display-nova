@@ -16,6 +16,7 @@ let onNdiConfigCallback: ((outputs: unknown[]) => void) | null = null;
 let onStageTimeCallback: ((data: StageTime) => void) | null = null;
 let onStageMessageCallback: ((data: StageMessage) => void) | null = null;
 let onDisplayMediaCallback: ((media: DisplayMedia) => void) | null = null;
+let onPreloadMediaCallback: ((media: DisplayMedia) => void) | null = null;
 let onStageConfigCallback: ((data: StageConfig) => void) | null = null;
 
 function buildScreensMessage() {
@@ -46,7 +47,8 @@ export function startWsServer(
   onStageTime: (data: StageTime) => void,
   onStageMessage: (data: StageMessage) => void,
   onStageConfig: (data: StageConfig) => void,
-  onDisplayMedia: (media: DisplayMedia) => void
+  onDisplayMedia: (media: DisplayMedia) => void,
+  onPreloadMedia: (media: DisplayMedia) => void
 ) {
   onSlideCallback = onSlide;
   onAssignScreenCallback = onAssignScreen;
@@ -57,6 +59,7 @@ export function startWsServer(
   onStageMessageCallback = onStageMessage;
   onStageConfigCallback = onStageConfig;
   onDisplayMediaCallback = onDisplayMedia;
+  onPreloadMediaCallback = onPreloadMedia;
 
   wss = new WebSocketServer({ host: "127.0.0.1", port: 9877 });
 
@@ -102,6 +105,12 @@ export function startWsServer(
             showTime:    msg.showTime    as boolean,
             showMessage: msg.showMessage as boolean,
           });
+
+        } else if (msg.type === "preload-media") {
+          const mediaType = msg.mediaType as "image" | "video";
+          const url = msg.url as string;
+          console.log(`[WS] preload-media → mediaType="${mediaType}" url="${url}"`);
+          onPreloadMediaCallback?.({ mediaType, url });
 
         } else if (msg.type === "display-media") {
           const mediaType = msg.mediaType as "image" | "video";

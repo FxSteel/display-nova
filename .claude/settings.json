@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm --version)",
-      "Bash(grep -r \"NSImage\\\\|dylib\\\\|macOS\\\\|category\\\\|activation\" /Users/fer/Desktop/display-nova/src --include=*.ts)"
+      "Bash(grep -r \"NSImage\\\\|dylib\\\\|macOS\\\\|category\\\\|activation\" /Users/fer/Desktop/display-nova/src --include=*.ts)",
+      "Bash(ls -lh /Users/fer/Desktop/display-nova/dist/*.dmg)"
     ]
   }
 }

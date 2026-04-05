@@ -14,6 +14,9 @@ import {
 } from "./main/ndiManager";
 import type { NdiOutput } from "./main/ndiManager";
 
+// Permitir autoplay con audio en todas las ventanas (requerido para multimedia)
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
+
 const isDev = !app.isPackaged;
 const rendererDevServer = "http://localhost:5173";
 
@@ -128,6 +131,11 @@ function onDisplayMedia(media: DisplayMedia) {
   sendToOutputWindow("main", "nova:displayMedia", media);
 }
 
+function onPreloadMedia(media: DisplayMedia) {
+  console.log(`[Main] preload-media → ${media.mediaType} ${media.url}`);
+  sendToOutputWindow("main", "nova:preloadMedia", media);
+}
+
 // El renderer avisa cuando ya registró sus listeners — reenviar el último estado
 ipcMain.on("nova:outputReady", (event) => {
   const role = getRoleForWebContents(event.sender.id);
@@ -148,7 +156,7 @@ async function bootstrap() {
   initWindowManager(rendererUrl("output"), preloadPath);
   createSetupWindow(rendererUrl("setup"), preloadPath);
   registerIpcHandlers(rendererUrl("output"), preloadPath);
-  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig, onStageTime, onStageMessage, onStageConfig, onDisplayMedia);
+  startWsServer(onSlide, onAssignScreen, onDisplayMode, onSongBackground, onNdiConfig, onStageTime, onStageMessage, onStageConfig, onDisplayMedia, onPreloadMedia);
   createTray(preloadPath);
 }
 

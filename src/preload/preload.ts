@@ -20,6 +20,9 @@ contextBridge.exposeInMainWorld("nova", {
   onDisplayMedia: (callback: (media: DisplayMedia) => void) => {
     ipcRenderer.on("nova:displayMedia", (_event, media: DisplayMedia) => callback(media));
   },
+  onPreloadMedia: (callback: (media: DisplayMedia) => void) => {
+    ipcRenderer.on("nova:preloadMedia", (_event, media: DisplayMedia) => callback(media));
+  },
   signalReady: () => {
     ipcRenderer.send("nova:outputReady");
   },

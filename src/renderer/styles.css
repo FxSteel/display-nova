@@ -154,7 +154,8 @@ button.primary:disabled {
   padding: 0;
 }
 
-.output-media img {
+.output-media img,
+.output-media video {
   position: relative;
   z-index: 2;
   width: 100vw;

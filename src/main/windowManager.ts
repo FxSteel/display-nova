@@ -63,7 +63,8 @@ export function openOutputWindowForRole(display: DisplayInfo, role: string): Bro
     webPreferences: {
       preload: _preloadPath,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      autoplayPolicy: "no-user-gesture-required"
     }
   });
 

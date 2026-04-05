@@ -261,6 +261,21 @@ export function ndiHandleSlide(slide: SlideData) {
     const startY = NDI_HEIGHT / 2 - ((lines.length - 1) * lineH) / 2;
     const x      = align === "left" ? 80 : align === "right" ? NDI_WIDTH - 80 : NDI_WIDTH / 2;
 
+    // Mini fondo semitransparente detrás del texto
+    const padH = fontSizePx * 0.6;
+    const padV = fontSizePx * 0.4;
+    const blockTop    = startY - fontSizePx / 2 - padV;
+    const blockBottom = startY + (lines.length - 1) * lineH + fontSizePx / 2 + padV;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx.beginPath();
+    const r = 16; // border-radius
+    const bx = padH;
+    const bw = NDI_WIDTH - padH * 2;
+    const bh = blockBottom - blockTop;
+    ctx.roundRect(bx, blockTop, bw, bh, r);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
     lines.forEach((line, i) => {
       ctx.fillText(line, x, startY + i * lineH);
     });
